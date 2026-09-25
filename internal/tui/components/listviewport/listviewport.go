@@ -79,8 +79,7 @@ func (m *Model) getNumPrsPerPage() int {
 }
 
 func (m *Model) ResetCurrItem() {
-	m.currId = 0
-	m.viewport.GotoTop()
+	m.FirstItem()
 }
 
 func (m *Model) GetCurrItem() int {
@@ -114,13 +113,53 @@ func (m *Model) PrevItem() int {
 
 func (m *Model) FirstItem() int {
 	m.currId = 0
+	m.topBoundId = 0
+	m.bottomBoundId = utils.Min(m.NumCurrentItems-1, m.getNumPrsPerPage()-1)
 	m.viewport.GotoTop()
 	return m.currId
 }
 
 func (m *Model) LastItem() int {
 	m.currId = m.NumCurrentItems - 1
+	m.bottomBoundId = m.currId
+	m.topBoundId = utils.Max(0, m.currId-m.getNumPrsPerPage()+1)
 	m.viewport.GotoBottom()
+	return m.currId
+}
+
+// ItemAt returns the id of the item rendered at line y of the viewport, or -1
+// if there is none.
+func (m *Model) ItemAt(y int) int {
+	if m.ListItemHeight == 0 || y < 0 || y >= m.viewport.Height() {
+		return -1
+	}
+	id := (m.viewport.YOffset() + y) / m.ListItemHeight
+	if id >= m.NumCurrentItems {
+		return -1
+	}
+	return id
+}
+
+// SelectItem moves the selection to the given item, scrolling only if it isn't
+// fully visible already.
+func (m *Model) SelectItem(id int) int {
+	m.currId = utils.Max(utils.Min(id, m.NumCurrentItems-1), 0)
+	if m.ListItemHeight == 0 {
+		return m.currId
+	}
+
+	perPage := utils.Max(m.getNumPrsPerPage(), 1)
+	top := (m.viewport.YOffset() + m.ListItemHeight - 1) / m.ListItemHeight
+	switch {
+	case m.currId < top:
+		top = m.currId
+		m.viewport.SetYOffset(top * m.ListItemHeight)
+	case m.currId > top+perPage-1:
+		top = m.currId - perPage + 1
+		m.viewport.SetYOffset(top * m.ListItemHeight)
+	}
+	m.topBoundId = top
+	m.bottomBoundId = top + perPage - 1
 	return m.currId
 }
 

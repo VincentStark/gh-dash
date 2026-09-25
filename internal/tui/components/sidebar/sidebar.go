@@ -119,6 +119,16 @@ func (m *Model) ScrollToBottom() {
 	m.viewport.GotoBottom()
 }
 
+// ScrollUp scrolls up by one mouse wheel step.
+func (m *Model) ScrollUp() {
+	m.viewport.ScrollUp(m.viewport.MouseWheelDelta)
+}
+
+// ScrollDown scrolls down by one mouse wheel step.
+func (m *Model) ScrollDown() {
+	m.viewport.ScrollDown(m.viewport.MouseWheelDelta)
+}
+
 func (m *Model) YOffset() int {
 	return m.viewport.YOffset()
 }

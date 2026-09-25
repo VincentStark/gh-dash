@@ -115,6 +115,16 @@ func (t *TestSection) LastItem() int {
 	panic("unimplemented")
 }
 
+// RowAt implements section.Section.
+func (t *TestSection) RowAt(y int) int {
+	panic("unimplemented")
+}
+
+// SelectRow implements section.Section.
+func (t *TestSection) SelectRow(id int) int {
+	panic("unimplemented")
+}
+
 // MakeSectionCmd implements section.Section.
 func (t *TestSection) MakeSectionCmd(cmd tea.Cmd) tea.Cmd {
 	panic("unimplemented")

@@ -177,6 +177,8 @@ type Table interface {
 	PrevRow() int
 	FirstItem() int
 	LastItem() int
+	RowAt(y int) int
+	SelectRow(id int) int
 	FetchNextPageSectionRows() []tea.Cmd
 	BuildRows() []table.Row
 	ResetRows()
@@ -344,6 +346,16 @@ func (m *BaseModel) FirstItem() int {
 
 func (m *BaseModel) LastItem() int {
 	return m.Table.LastItem()
+}
+
+// RowAt returns the index of the row rendered at line y of the section, or -1
+// if there is none.
+func (m *BaseModel) RowAt(y int) int {
+	return m.Table.RowAt(y - lipgloss.Height(m.SearchBar.View(m.Ctx)))
+}
+
+func (m *BaseModel) SelectRow(id int) int {
+	return m.Table.SelectItem(id)
 }
 
 func (m *BaseModel) IsSearchFocused() bool {

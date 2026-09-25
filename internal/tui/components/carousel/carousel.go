@@ -1,12 +1,14 @@
 package carousel
 
 import (
+	"strconv"
 	"strings"
 
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
+	zone "github.com/lrstanley/bubblezone/v2"
 
 	"github.com/dlvhdr/gh-dash/v4/internal/tui/constants"
 )
@@ -26,6 +28,7 @@ type Model struct {
 	showSeparators         bool
 	separator              string
 	styles                 Styles
+	zonePrefix             string
 
 	content string
 	start   int
@@ -146,6 +149,14 @@ func WithSeparators(sep ...string) Option {
 		if len(sep) > 0 {
 			m.separator = sep[0]
 		}
+	}
+}
+
+// WithZonePrefix marks each rendered item as a bubblezone zone with the given
+// prefix, so that ItemAt can tell which item was clicked.
+func WithZonePrefix(prefix string) Option {
+	return func(m *Model) {
+		m.zonePrefix = prefix
 	}
 }
 
@@ -374,7 +385,7 @@ func (m *Model) renderItem(itemID int, maxWidth int) string {
 	if itemID == m.cursor {
 		return lipgloss.JoinHorizontal(
 			lipgloss.Center,
-			m.styles.Selected.Render(item),
+			m.markItem(itemID, m.styles.Selected.Render(item)),
 			sep,
 		)
 	}
@@ -399,9 +410,34 @@ func (m *Model) renderItem(itemID int, maxWidth int) string {
 
 	return lipgloss.JoinHorizontal(
 		lipgloss.Center,
-		item,
+		m.markItem(itemID, item),
 		sep,
 	)
+}
+
+func (m *Model) zoneId(itemID int) string {
+	return m.zonePrefix + strconv.Itoa(itemID)
+}
+
+func (m *Model) markItem(itemID int, item string) string {
+	if m.zonePrefix == "" || zone.DefaultManager == nil {
+		return item
+	}
+	return zone.Mark(m.zoneId(itemID), item)
+}
+
+// ItemAt returns the index of the item under the mouse, or -1 if there is none.
+// It requires the carousel to be created WithZonePrefix.
+func (m Model) ItemAt(msg tea.MouseMsg) int {
+	if m.zonePrefix == "" || zone.DefaultManager == nil {
+		return -1
+	}
+	for i := m.start; i <= m.end && i < len(m.items); i++ {
+		if zone.Get(m.zoneId(i)).InBounds(msg) {
+			return i
+		}
+	}
+	return -1
 }
 
 func max(a, b int) int {

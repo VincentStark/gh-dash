@@ -1,6 +1,7 @@
 package listviewport
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -127,5 +128,80 @@ func TestNextItemAtLastItem(t *testing.T) {
 
 	if m.GetCurrItem() != 9 {
 		t.Errorf("expected currId=9, got %d", m.GetCurrItem())
+	}
+}
+
+func TestPrevItemAfterLastItemScrollsUp(t *testing.T) {
+	m := newTestModel(testModelOpts{numItems: 20, viewportHeight: 5, itemHeight: 1})
+	m.SyncViewPort(strings.Repeat("x\n", 19) + "x")
+
+	m.LastItem()
+	for range 10 {
+		m.PrevItem()
+	}
+
+	if m.GetCurrItem() != 9 {
+		t.Fatalf("expected currId=9, got %d", m.GetCurrItem())
+	}
+	if m.viewport.YOffset() != 9 {
+		t.Errorf("expected the selected item at the top of the viewport, got YOffset=%d",
+			m.viewport.YOffset())
+	}
+}
+
+func TestItemAt(t *testing.T) {
+	m := newTestModel(testModelOpts{numItems: 20, viewportHeight: 6, itemHeight: 2})
+	m.SyncViewPort(strings.Repeat("x\n", 39) + "x")
+
+	if got := m.ItemAt(3); got != 1 {
+		t.Errorf("expected item 1 at line 3, got %d", got)
+	}
+	if got := m.ItemAt(6); got != -1 {
+		t.Errorf("expected no item below the viewport, got %d", got)
+	}
+
+	for range 5 {
+		m.NextItem()
+	}
+	// Items 3-5 are visible now.
+	if got := m.ItemAt(0); got != 3 {
+		t.Errorf("expected item 3 at line 0 after scrolling, got %d", got)
+	}
+}
+
+func TestItemAtPastLastItem(t *testing.T) {
+	m := newTestModel(testModelOpts{numItems: 2, viewportHeight: 10, itemHeight: 1})
+	m.SyncViewPort("x\nx")
+
+	if got := m.ItemAt(5); got != -1 {
+		t.Errorf("expected no item past the last one, got %d", got)
+	}
+}
+
+func TestSelectItem(t *testing.T) {
+	m := newTestModel(testModelOpts{numItems: 20, viewportHeight: 5, itemHeight: 1})
+	m.SyncViewPort(strings.Repeat("x\n", 19) + "x")
+
+	m.SelectItem(7)
+	if m.GetCurrItem() != 7 {
+		t.Fatalf("expected currId=7, got %d", m.GetCurrItem())
+	}
+	if m.viewport.YOffset() != 3 {
+		t.Errorf("expected item 7 at the bottom of the viewport, got YOffset=%d",
+			m.viewport.YOffset())
+	}
+
+	m.SelectItem(2)
+	if m.GetCurrItem() != 2 {
+		t.Fatalf("expected currId=2, got %d", m.GetCurrItem())
+	}
+	if m.viewport.YOffset() != 2 {
+		t.Errorf("expected item 2 at the top of the viewport, got YOffset=%d",
+			m.viewport.YOffset())
+	}
+
+	m.SelectItem(100)
+	if m.GetCurrItem() != 19 {
+		t.Errorf("expected out of range id to clamp to 19, got %d", m.GetCurrItem())
 	}
 }

@@ -48,6 +48,7 @@ func NewModel(ctx *context.ProgramContext) Model {
 	c := carousel.NewModel(
 		carousel.WithItems(tabs),
 		carousel.WithWidth(ctx.MainContentWidth),
+		carousel.WithZonePrefix("pr-tab-"),
 	)
 
 	ta := inputbox.DefaultTextArea(ctx)
@@ -755,6 +756,15 @@ func (m *Model) GoToFirstTab() {
 
 func (m *Model) GoToActivityTab() {
 	m.carousel.SetCursor(1) // Activity is the second tab (index 1)
+}
+
+// TabAt returns the index of the tab under the mouse, or -1.
+func (m *Model) TabAt(msg tea.MouseMsg) int {
+	return m.carousel.ItemAt(msg)
+}
+
+func (m *Model) GoToTab(i int) {
+	m.carousel.SetCursor(i)
 }
 
 func (m Model) SelectedTab() string {

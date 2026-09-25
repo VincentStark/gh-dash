@@ -875,7 +875,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return nil
 			}
 			cmds = append(cmds, openCmd)
+		} else {
+			cmd = m.onMouseClick(msg)
 		}
+
+	case tea.MouseWheelMsg:
+		cmd = m.onMouseWheel(msg)
 
 	case tea.WindowSizeMsg:
 		m.onWindowSizeChanged(msg)

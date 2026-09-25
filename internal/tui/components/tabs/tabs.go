@@ -34,6 +34,7 @@ func NewModel(ctx *context.ProgramContext) Model {
 		carousel.WithHeight(1),
 		carousel.WithOverflowIndicators("←", "→"),
 		carousel.WithSeparators(),
+		carousel.WithZonePrefix("section-tab-"),
 	)
 	m := Model{
 		carousel: c,
@@ -114,6 +115,11 @@ func (m *Model) fetchHasNewVersion() tea.Cmd {
 
 func (m *Model) CurrSectionId() int {
 	return m.carousel.Cursor()
+}
+
+// SectionAt returns the id of the section whose tab is under the mouse, or -1.
+func (m *Model) SectionAt(msg tea.MouseMsg) int {
+	return m.carousel.ItemAt(msg)
 }
 
 func (m *Model) SetCurrSectionId(id int) {

@@ -152,6 +152,26 @@ func (m *Model) LastItem() int {
 	return currItem
 }
 
+// RowAt returns the index of the row rendered at line y of the table, or -1 if
+// there is none.
+func (m *Model) RowAt(y int) int {
+	if m.isLoading || len(m.Rows) == 0 {
+		return -1
+	}
+	id := m.rowsViewport.ItemAt(y - lipgloss.Height(m.renderHeader()))
+	if id >= len(m.Rows) {
+		return -1
+	}
+	return id
+}
+
+func (m *Model) SelectItem(id int) int {
+	currItem := m.rowsViewport.SelectItem(id)
+	m.SyncViewPortContent()
+
+	return currItem
+}
+
 func (m *Model) cacheColumnWidths() {
 	columns := m.renderHeaderColumns()
 	for i, col := range columns {
